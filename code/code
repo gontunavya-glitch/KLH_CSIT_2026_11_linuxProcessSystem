@@ -1,1 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
 
+int main()
+{
+    pid_t pid;
+    int status;
+
+    printf("\n====================================\n");
+    printf(" OPERATING SYSTEM CONCEPTS SIMULATOR\n");
+    printf("       PROCESS MANAGEMENT\n");
+    printf("====================================\n");
+
+    // 1. PROCESS CREATION
+    printf("\n1. PROCESS CREATION\n");
+
+    pid = fork();
+
+    if (pid < 0)
+    {
+        perror("Process creation failed");
+        return 1;
+    }
+
+    // CHILD PROCESS
+    if (pid == 0)
+    {
+        printf("\nChild process created successfully!\n");
+        printf("Child PID: %d\n", getpid());
+        printf("Parent PID: %d\n", getppid());
+
+        // 2. PROCESS EXECUTION
+        printf("\n2. PROCESS EXECUTION\n");
+        printf("Executing Linux sleep command...\n");
+        fflush(stdout);
+
+        execlp("sleep", "sleep", "20", (char *)NULL);
+
+        perror("Execution failed");
+        exit(1);
+    }
+
+    // PARENT PROCESS
+    else
+    {
+        printf("Parent PID: %d\n", getpid());
+        printf("Child PID: %d\n", pid);
+
+        sleep(3);
+
+        // 3. PROCESS TERMINATION
+        printf("\n3. PROCESS TERMINATION\n");
+        printf("Sending termination signal to child...\n");
+
+        if (kill(pid, SIGTERM) == 0)
+        {
+            printf("Termination signal sent successfully!\n");
+        }
+        else
+        {
+            perror("Termination failed");
+        }
+
+        // 4. WAIT FOR CHILD PROCESS
+        waitpid(pid, &status, 0);
+
+        if (WIFSIGNALED(status))
+        {
+            printf("Child terminated by signal: %d\n",
+                   WTERMSIG(status));
+        }
+        else if (WIFEXITED(status))
+        {
+            printf("Child exited with code: %d\n",
+                   WEXITSTATUS(status));
+        }
+
+        printf("\n====================================\n");
+        printf(" PROCESS MANAGEMENT COMPLETED!\n");
+        printf("====================================\n");
+    }
+
+    return 0;
+}
